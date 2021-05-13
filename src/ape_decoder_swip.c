@@ -479,7 +479,7 @@ static inline int ape_decode_value_3860(APEContext *ctx, GetBitContext *gb,
         rice->k++;
 
     /* Convert to signed */
-    return ((x >> 1) ^ ((x & 1) - 1)) + 1;
+    return (int)(((x >> 1) ^ ((x & 1) - 1)) + 1);
 }
 
 static inline int ape_decode_value_3900(APEContext *ctx, APERice *rice)
@@ -794,10 +794,11 @@ static inline int APESIGN(int32_t x) {
 }
 
 static inline int filter_fast_3320(APEPredictor *p,
-                                             const int decoded, const int filter,
+                                             const int decoded, const int filterInt,
                                              const int delayA)
 {
     int32_t predictionA;
+    unsigned int filter = (unsigned int)filterInt;
 
     p->buf[delayA] = p->lastA[filter];
     if (p->sample_pos < 3) {
@@ -820,12 +821,13 @@ static inline int filter_fast_3320(APEPredictor *p,
 }
 
 static inline int filter_3800(APEPredictor *p,
-                                        const int decoded, const int filter,
+                                        const int decoded, const int filterInt,
                                         const int delayA,  const int delayB,
                                         const int start,   const int shift)
 {
     int32_t predictionA, predictionB, sign;
     int32_t d0, d1, d2, d3, d4;
+    unsigned int filter = (unsigned int)filterInt;
 
     p->buf[delayA] = p->lastA[filter];
     p->buf[delayB] = p->filterB[filter];
@@ -1012,11 +1014,12 @@ static void predictor_decode_mono_3800(APEContext *ctx, int count)
 }
 
 static inline int predictor_update_3930(APEPredictor *p,
-                                                  const int decoded, const int filter,
+                                                  const int decoded, const int filterInt,
                                                   const int delayA)
 {
     int32_t predictionA, sign;
     int32_t d0, d1, d2, d3;
+    unsigned int filter = (unsigned int)filterInt;
 
     p->buf[delayA]     = p->lastA[filter];
     d0 = p->buf[delayA    ];
@@ -1092,11 +1095,12 @@ static void predictor_decode_mono_3930(APEContext *ctx, int count)
 }
 
 static inline int predictor_update_filter(APEPredictor *p,
-                                                    const int decoded, const int filter,
+                                                    const int decoded, const int filterInt,
                                                     const int delayA,  const int delayB,
                                                     const int adaptA,  const int adaptB)
 {
     int32_t predictionA, predictionB, sign;
+    unsigned int filter = (unsigned int)filterInt;
 
     p->buf[delayA]     = p->lastA[filter];
     p->buf[adaptA]     = APESIGN(p->buf[delayA]);
@@ -1313,11 +1317,11 @@ static void ape_apply_filters(APEContext *ctx, int32_t *decoded0,
     int i;
 
     for (i = 0; i < APE_FILTER_LEVELS; i++) {
-        if (!ape_filter_orders[ctx->fset][i])
+        if (!ape_filter_orders[(unsigned int)ctx->fset][i])
             break;
         apply_filter(ctx, ctx->filters[i], decoded0, decoded1, count,
-                     ape_filter_orders[ctx->fset][i],
-                     ape_filter_fracbits[ctx->fset][i]);
+                     ape_filter_orders[(unsigned int)ctx->fset][i],
+                     ape_filter_fracbits[(unsigned int)ctx->fset][i]);
     }
 }
 
@@ -1329,22 +1333,20 @@ static int init_frame_decoder(APEContext *ctx)
     init_predictor_decoder(ctx);
 
     for (i = 0; i < APE_FILTER_LEVELS; i++) {
-        if (!ape_filter_orders[ctx->fset][i])
+        if (!ape_filter_orders[(unsigned int)ctx->fset][i])
             break;
         switch (i) {
         case 0:
             init_filter(ctx, ctx->filters[i], ctx->filterbuf64,
-                    ape_filter_orders[ctx->fset][i]);
+                    ape_filter_orders[(unsigned int)ctx->fset][i]);
             break;
         case 1:
             init_filter(ctx, ctx->filters[i], ctx->filterbuf256,
-                    ape_filter_orders[ctx->fset][i]);
+                    ape_filter_orders[(unsigned int)ctx->fset][i]);
             break;
         case 2:
             init_filter(ctx, ctx->filters[i], ctx->filterbuf1280,
-                    ape_filter_orders[ctx->fset][i]);
-            break;
-        default:
+                    ape_filter_orders[(unsigned int)ctx->fset][i]);
             break;
         }
     }
@@ -1735,8 +1737,7 @@ int ape_decoder_decode(ape_decoder_handle handle,
         s->decode_state = APE_STATE_FRAME_INIT;
     }
 
-    *bytes_consumed = s->ptr - s->data; //ptr will go
-    *bytes_consumed = (s->ptr - s->data)&0xfffffffc;
+    *bytes_consumed = (s->ptr - s->data)&0xfffffffc; //ptr will go
     s->byte_offset = (s->ptr - s->data)%4;
     ALOGD("ape dec end %d *bytes_consumed:%d, *bytes_produced %d, samples:%d, offset:%d\n",
         DecCnt,*bytes_consumed,*bytes_produced,s->samples,s->byte_offset);
