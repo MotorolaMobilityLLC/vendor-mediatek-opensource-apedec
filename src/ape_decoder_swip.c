@@ -513,7 +513,7 @@ static inline int ape_decode_value_3900(APEContext *ctx, APERice *rice)
     update_rice(rice, x);
 
     /* Convert to signed */
-    return ((x >> 1) ^ ((x & 1) - 1)) + 1;
+    return (int)(((x >> 1) ^ ((x & 1) - 1)) + 1);
 }
 
 static inline int ape_decode_value_3990(APEContext *ctx, APERice *rice)
@@ -548,7 +548,7 @@ static inline int ape_decode_value_3990(APEContext *ctx, APERice *rice)
     x = base + overflow * pivot;
     update_rice(rice, x);
     /* Convert to signed */
-    return ((x >> 1) ^ ((x & 1) - 1)) + 1;
+    return (int)(((x >> 1) ^ ((x & 1) - 1)) + 1);
 }
 
 static void decode_array_0000(APEContext *ctx, GetBitContext *gb,
