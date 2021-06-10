@@ -48,7 +48,9 @@
 #define BSWAP16C(x) (((x) << 8 & 0xff00)  | ((x) >> 8 & 0x00ff))
 #define BSWAP32C(x) (BSWAP16C(x) << 16 | BSWAP16C((x) >> 16))
 
-#define INT_MAX 2147483648
+#ifndef INT_MAX
+#define INT_MAX 2147483647
+#endif
 
 #ifndef LOG2
 #define LOG2(x) (31 - __builtin_clz((x)|1))
