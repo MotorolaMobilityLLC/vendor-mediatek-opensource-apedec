@@ -478,6 +478,10 @@ static inline int ape_decode_value_3860(APEContext *ctx, GetBitContext *gb,
     else if (rice->ksum >= (1 << (rice->k + 5)) && rice->k < 24)
         rice->k++;
 
+    if (x == 0) {
+        ALOGD( "meet x==0 which will calculate overflow\n");
+        return INT_MAX;
+    }
     retval = ((x >> 1) ^ ((x & 1) - 1)) + 1;
 
     /* Convert to signed */
@@ -515,6 +519,10 @@ static inline int ape_decode_value_3900(APEContext *ctx, APERice *rice)
 
     update_rice(rice, x);
 
+    if (x == 0) {
+        ALOGD( "meet x==0 which will calculate overflow\n");
+        return INT_MAX;
+    }
     retval = (((x >> 1) ^ ((x & 1) - 1)) + 1);
 
     /* Convert to signed */
@@ -554,6 +562,10 @@ static inline int ape_decode_value_3990(APEContext *ctx, APERice *rice)
     x = base + overflow * pivot;
     update_rice(rice, x);
 
+    if (x == 0) {
+        ALOGD( "meet x==0 which will calculate overflow\n");
+        return INT_MAX;
+    }
     retval = (((x >> 1) ^ ((x & 1) - 1)) + 1);
 
     /* Convert to signed */
