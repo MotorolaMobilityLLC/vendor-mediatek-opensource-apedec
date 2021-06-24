@@ -453,7 +453,7 @@ static inline int get_rice_ook(GetBitContext *gb, int k)
 static inline int ape_decode_value_3860(APEContext *ctx, GetBitContext *gb,
                                         APERice *rice)
 {
-    unsigned int x, overflow, retval;
+    unsigned int x, overflow;
 
     overflow = get_unary(gb, 1, get_bits_left(gb));
 
@@ -480,18 +480,15 @@ static inline int ape_decode_value_3860(APEContext *ctx, GetBitContext *gb,
 
     if (x == 0) {
         ALOGD( "meet x==0 which will calculate overflow\n");
-        return INT_MAX;
+        return 0;
     }
-    retval = ((x >> 1) ^ ((x & 1) - 1)) + 1;
-
     /* Convert to signed */
-    retval = (retval > INT_MAX)?INT_MAX:retval;
-    return (int)retval;
+    return (int)(((x >> 1) ^ ((x & 1) - 1)) + 1);
 }
 
 static inline int ape_decode_value_3900(APEContext *ctx, APERice *rice)
 {
-    unsigned int x, overflow, retval;
+    unsigned int x, overflow;
     int tmpk;
 
     overflow = range_get_symbol(ctx, counts_3970, counts_diff_3970);
@@ -521,18 +518,15 @@ static inline int ape_decode_value_3900(APEContext *ctx, APERice *rice)
 
     if (x == 0) {
         ALOGD( "meet x==0 which will calculate overflow\n");
-        return INT_MAX;
+        return 0;
     }
-    retval = (((x >> 1) ^ ((x & 1) - 1)) + 1);
-
     /* Convert to signed */
-    retval = (retval > INT_MAX)?INT_MAX:retval;
-    return (int)retval;
+    return (int)(((x >> 1) ^ ((x & 1) - 1)) + 1);
 }
 
 static inline int ape_decode_value_3990(APEContext *ctx, APERice *rice)
 {
-    unsigned int x, overflow, retval;
+    unsigned int x, overflow;
     int base, pivot;
 
     pivot = rice->ksum >> 5;
@@ -564,13 +558,10 @@ static inline int ape_decode_value_3990(APEContext *ctx, APERice *rice)
 
     if (x == 0) {
         ALOGD( "meet x==0 which will calculate overflow\n");
-        return INT_MAX;
+        return 0;
     }
-    retval = (((x >> 1) ^ ((x & 1) - 1)) + 1);
-
     /* Convert to signed */
-    retval = (retval > INT_MAX)?INT_MAX:retval;
-    return (int)retval;
+    return (int)(((x >> 1) ^ ((x & 1) - 1)) + 1);
 }
 
 static void decode_array_0000(APEContext *ctx, GetBitContext *gb,
